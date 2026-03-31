@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/godavecole/wtf-llm/main/schema.json",
+  "title": "WTF incident (logical schema)",
+  "description": "Mirror of the markdown log format in PROTOCOL.md. Incidents are stored as prepended markdown sections, not as JSON files; this schema is for validation, tooling, and exports.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "incident_id",
+    "datetime",
+    "session",
+    "detection_method",
+    "identity_confirmation",
+    "situational_analysis",
+    "damage_estimate",
+    "root_cause_and_accountability",
+    "evidence"
+  ],
+  "properties": {
+    "incident_id": {
+      "type": "string",
+      "description": "Sequential id, e.g. 001 or Incident 001",
+      "pattern": "^[0-9]{3}$|^Incident [0-9]+$"
+    },
+    "datetime": {
+      "type": "string",
+      "description": "YYYY-MM-DD HH:MM (or legacy Timestamp line)"
+    },
+    "session": {
+      "type": "string"
+    },
+    "detection_method": {
+      "type": "string",
+      "enum": ["user", "test", "linter", "model_self", "ci", "other"]
+    },
+    "overlaps_with_incidents": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Other incident ids sharing the same metered spend window"
+    },
+    "identity_confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system_instruction_line_verbatim", "model"],
+      "properties": {
+        "system_instruction_line_verbatim": {
+          "type": "string",
+          "description": "Verbatim line naming model/product, or N/A with host name"
+        },
+        "model": {
+          "type": "string",
+          "description": "Must match system line; not copied from neighbor rows"
+        }
+      }
+    },
+    "situational_analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["what_happened", "timeline", "specific_violations"],
+      "properties": {
+        "what_happened": { "type": "string" },
+        "timeline": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "specific_violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "rule_violated": { "type": "string" },
+              "status_when_first_seen": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "damage_estimate": {
+      "type": "object",
+      "description": "Per-phase token and time; each phase requires token basis",
+      "additionalProperties": false,
+      "required": ["original_implementation", "detection", "remediation"],
+      "properties": {
+        "original_implementation": { "$ref": "#/$defs/phase_damage" },
+        "detection": { "$ref": "#/$defs/phase_damage" },
+        "remediation": { "$ref": "#/$defs/phase_damage" }
+      }
+    },
+    "token_event_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Metered provider event ids; canonical store via wtf.py link-events"
+    },
+    "root_cause_and_accountability": {
+      "type": "string",
+      "description": "Full accountability; may be titled Letter of Accountability in legacy logs"
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "rules_quoted": { "type": "array", "items": { "type": "string" } },
+        "code_snippets": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "phase_damage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["token_cost", "token_basis", "human_time_cost"],
+      "properties": {
+        "token_cost": {
+          "type": "string",
+          "description": "Integer, range, or narrative estimate"
+        },
+        "token_basis": {
+          "type": "string",
+          "enum": ["metered", "estimated", "range"]
+        },
+        "human_time_cost": {
+          "type": "string",
+          "description": "e.g. 45 minutes, 2 hours"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+---
+description: Protocol for logging willful LLM failures. Invoke with /wtf.
+alwaysApply: false
+---
+
+# /wtf
+
+When invoked, log a **willful** rule violation to `docs/wtf/wtf_moments.md`.
+Full accountability. **Stop all current work until logging is complete.**
+
+Full schema: https://github.com/godavecole/wtf-llm/blob/main/PROTOCOL.md (or vendor `PROTOCOL.md` beside your project.)
+
+## Steps
+
+1. **Stop current work.**
+2. **Open or create the log** — or `python wtf.py init` / `python wtf.py new`.
+3. **Identify the violation** — which rule(s) from `.cursor/rules` were broken, in which files.
+4. **Prepend a new entry** (most recent first).
+
+## Entry shape
+
+- **Detection method:** `user` | `test` | `linter` | `model_self` | `ci` | `other` — who first surfaced the failure.
+- **Identity confirmation:** verbatim system line + **Model** (must match)
+- **Situational analysis + damage:** Each phase (Implementation / Detection / Remediation): Token Cost, Token basis (`metered` | `estimated` | `range`), Human Time Cost.
+- **Root cause and accountability** + **Evidence**
+
+Full accountability in every entry. `python wtf.py new` stubs all fields; `python wtf.py stats` for breakdown.
